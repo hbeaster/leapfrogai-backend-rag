@@ -68,7 +68,7 @@ variables:
   - name: EMBEDDING_MODEL_NAME
     description: The name of the embedding model to use for creating embeddings
     default: "text-embeddings"
-    prompt: false
+    prompt: true
     sensitive: false
 
 components:
