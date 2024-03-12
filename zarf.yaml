@@ -65,6 +65,10 @@ variables:
     default: "False"
     prompt: true
     sensitive: false
+  - name: EMBEDDING_MODEL_NAME
+    description: The name of the embedding model to use for creating embeddings
+    prompt: false
+    sensitive: false
 
 components:
   - name: rag
