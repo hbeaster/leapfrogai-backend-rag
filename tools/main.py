@@ -40,6 +40,9 @@ def printMulti(tuples, between=""):
         print(termcolor.colored(text, color), end=between)
     print()
 
+def printVariable(variableName, variable):
+    printMulti([(f"{variableName }: ", BLUE), (variable, YELLOW)])
+
 def setupParser():
     parser = argparse.ArgumentParser(description="Upload files to da RAG")
     parser.add_argument("--collection_name", "-c", type=str, help=COLLECTION_NAME_HELP_MESSAGE, required=True)
@@ -52,39 +55,41 @@ def getArgs():
     args = parser.parse_args()
 
     collection_name = args.collection_name
-    file_name = args.file
+    file_path = args.file
     rag_url = args.url
 
-    file_path = Path(file_name)
-    file_extension = file_path.suffix.lower()
+    file_extension = Path(file_path).suffix.lower()
 
     if file_extension not in [".zip", ".txt", ".pdf"]:
         printError(f"File type not supported. {SUPPORTED_FILE_TYPE_MESSAGE}")
         exit()
 
-    printMulti([("Collection Name: ", BLUE), (collection_name, YELLOW)])
-    printMulti([("File Path: ", BLUE), (file_path, YELLOW)])
+    printVariable("Collection Name", collection_name)
+    printVariable("File Path", file_path)
 
     # if the rag url isn't set then attempt to get it from the environment
     if rag_url is not None:
-        printMulti([("RAG_URL: ", BLUE), (rag_url, YELLOW)])
+        printVariable("RAG_URL", rag_url)
     else:
         rag_url = os.getenv("RAG_URL")
 
         if rag_url is None:
             printError("RAG_URL environment variable is not set and --url, -u option not set.")
         else:
-            printMulti([("RAG_URL: ", BLUE), (rag_url, YELLOW)])
+            printVariable("RAG_URL", rag_url)
 
-    return collection_name, file_name, rag_url
+    return collection_name, file_path, rag_url
 
-def uploadFile(collection_name, file_name, rag_url):
+def uploadFile(collection_name, file_path, rag_url):
     # form thet api request
     uploadUrlWithQuery = f"{rag_url}/upload/?collection_name={collection_name}"
-    file = open(file_name, "rb")
-    form_data = { "file": ("swarm.pdf", file )}
+    file = open(file_path, "rb")
+    file_name = os.path.basename(file_path)
+    printVariable("File Name", file_name)
+    form_data = { "file": (file_name, file )}
     try:
         # Send the POST request
+        printYellow(f"Sending request: {uploadUrlWithQuery} ...")
         response = requests.post(uploadUrlWithQuery, files=form_data, verify=False)
 
         if (response.status_code == 200):
@@ -99,7 +104,9 @@ def verifyFileUpload(collection_name, rag_url):
       }
 
     try:
-        response = requests.post(f"{rag_url}/query/raw", json=data, verify=False)
+        verfyUrl = f"{rag_url}/query/raw"
+        printYellow(f"Sending request: {verfyUrl} ...")
+        response = requests.post(verfyUrl, json=data, verify=False)
 
         if (response.status_code == 200):
             printGreen("Verified file was added to collection")
@@ -108,9 +115,9 @@ def verifyFileUpload(collection_name, rag_url):
 
     
 def main():
-    collection_name, file_name, rag_url = getArgs()
+    collection_name, file_path, rag_url = getArgs()
 
-    uploadFile(collection_name, file_name, rag_url)
+    uploadFile(collection_name, file_path, rag_url)
 
     printBlue("Verifiying that file was added to collection...")
 
