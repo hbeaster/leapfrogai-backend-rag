@@ -2,46 +2,16 @@ import argparse
 import os
 from pathlib import Path
 from zipfile import ZipFile
-import termcolor
-from fastapi import UploadFile
 import requests
 import warnings
+from printHelper import *
 warnings.filterwarnings("ignore", message="Unverified HTTPS request is being made.")
 
-RED = "red"
-GREEN = "green"
-YELLOW = "yellow"
-BLUE = "blue"
-WHITE = "white"
 COLLECTION_NAME_HELP_MESSAGE = "(REQUIRED) Name of the collection you want to attach your file to."
 SUPPORTED_FILE_TYPES = [".zip", ".txt", ".pdf"]
 SUPPORTED_FILE_TYPE_MESSAGE = F"Supported file types are: {", ".join(SUPPORTED_FILE_TYPES)}"
 FILE_HELP_MESSAGE = f"(REQUIRED)Path to the file that you want to upload to the RAG. {SUPPORTED_FILE_TYPE_MESSAGE}"
 URL_HELP_MESSAGE = "URL to the rag you want to upload to."
-
-
-def printError(text):
-    printRed(f"ERROR: {text}")
-
-def printRed(text):
-    print(termcolor.colored(text, RED))
-
-def printGreen(text):
-    print(termcolor.colored(text, GREEN))
-
-def printYellow(text):
-    print(termcolor.colored(text, YELLOW))
-
-def printBlue(text):
-    print(termcolor.colored(text, BLUE))
-
-def printMulti(tuples, between=""):    
-    for text, color in tuples:
-        print(termcolor.colored(text, color), end=between)
-    print()
-
-def printVariable(variableName, variable):
-    printMulti([(f"{variableName }: ", BLUE), (variable, YELLOW)])
 
 def setupParser():
     parser = argparse.ArgumentParser(description="Upload files to da RAG")
@@ -93,7 +63,7 @@ def uploadFile(collection_name, file_path, rag_url):
         response = requests.post(uploadUrlWithQuery, files=form_data, verify=False)
 
         if (response.status_code == 200):
-            printGreen("Successful request to upload file to RAG")
+            printGreen("Successfully to uploaded file to RAG")
     except requests.exceptions.RequestException as e:
         printError(f"Error sending POST request: {str(e)}")
 
@@ -109,7 +79,7 @@ def verifyFileUpload(collection_name, rag_url):
         response = requests.post(verfyUrl, json=data, verify=False)
 
         if (response.status_code == 200):
-            printGreen("Verified file was added to collection")
+            printGreen(f"Successfully verified your file was added to collection \"{collection_name}\"")
     except requests.exceptions.RequestException as e:
         printError(f"Error sending POST request: {str(e)}")
 
